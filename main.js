@@ -258,7 +258,7 @@ var Bomber = /** @class */ (function () {
     return Bomber;
 }());
 var stopGame = false;
-var square = new Bomber(blockSize, blockSize * 0.75, 15, 0, 15, 0, 1, "left", 1, 2, 2, false, 0);
+var square = new Bomber(blockSize, blockSize * 0.75, 15, 0, 15, 0, 1, "left", 1, 1, 2, false, 0);
 function getRandomInt(min, max) {
     min = Math.ceil(min);
     max = Math.floor(max);
