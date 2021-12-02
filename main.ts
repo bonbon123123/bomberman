@@ -1400,6 +1400,41 @@ const loop = function () {
         if (square.x + square.width + square.xVelocity > element.x1 && square.x + square.xVelocity < element.x2
             && square.y + square.height > element.y1 && square.y < element.y2) {
             myBool1 = false
+
+            if (controller.right) {
+
+                if (square.direction == "left" && controller.left) {
+
+                } else {
+                    if ((square.y / blockSize) - (Math.round(element.y1 / blockSize)) < -0.6 && (square.y / blockSize) - (Math.round(element.y1 / blockSize)) > -1) {
+                        square.direction = "right"
+                        square.yVelocity -= 1;
+                    }
+                    else if (((square.y / blockSize) - (Math.round(element.y1 / blockSize)) > 0.6) && ((square.y / blockSize) - (Math.round(element.y1 / blockSize)) < 1)) {
+                        square.direction = "right"
+                        square.yVelocity += 1;
+                    }
+
+                }
+
+            }
+            if (controller.left) {
+
+                if (square.direction == "right" && controller.right) {
+
+                } else {
+                    if ((square.y / blockSize) - (Math.round(element.y1 / blockSize)) < -0.6 && (square.y / blockSize) - (Math.round(element.y1 / blockSize)) > -1) {
+                        square.direction = "left"
+                        square.yVelocity -= 1;
+                    }
+                    else if (((square.y / blockSize) - (Math.round(element.y1 / blockSize)) > 0.6) && ((square.y / blockSize) - (Math.round(element.y1 / blockSize)) < 1)) {
+                        square.direction = "left"
+                        square.yVelocity += 1;
+                    }
+
+                }
+
+            }
         }
 
         if (square.y + square.height + square.yVelocity > element.y1 && square.y + square.yVelocity < element.y2
@@ -1413,9 +1448,11 @@ const loop = function () {
     if (square.died == false) {
         if (myBool1) {
             square.x += square.xVelocity;
+
         }
         if (myBool2) {
             square.y += square.yVelocity;
+
         }
     }
 
