@@ -434,8 +434,14 @@ var startLoop = function () {
             }
         }
     }
+    fpsInterval = 1000 / 60;
+    then = performance.now();
+    startTime = then;
     myFrame = window.requestAnimationFrame(loop);
 };
+var fpsInterval;
+var then;
+var startTime;
 var PowerUpObj = /** @class */ (function () {
     function PowerUpObj(x, y, image, type) {
         this.x = x;
@@ -1133,256 +1139,295 @@ var controller = {
         }
     }
 };
+var now;
+var elapsed;
 var loop = function () {
-    if (Date.now() - lastTime > 1000) {
-        lastTime = Date.now();
-        timer--;
-        timerCanvas.fillStyle = "#a1a1a1";
-        timerCanvas.fillRect(0, 0, blockSize * 16, blockSize * 2);
-        timerCanvas.font = "bold 28px verdana, sans-serif ";
-        timerCanvas.fillStyle = "#ffffff";
-        timerCanvas.fillText("Time ".concat(timer), blockSize * 0.5, blockSize * 1.5);
-        timerCanvas.fillText("Score ".concat(score), blockSize * 8, blockSize * 1.5);
-        timerCanvas.fillText("Left ".concat(square.lives), blockSize * 12, blockSize * 1.5);
-        if (timer == 1) {
-            enemiesOnStage = 6;
-            enemyTab = [];
-            for (var i = 0; i < enemiesOnStage; i++) {
-                var x = getRandomInt(1, 30);
-                var y = getRandomInt(1, 12);
-                if (x == 1 && y == 1 || x == 1 && y == 2 || x == 2 && y == 1) {
-                    i--;
-                }
-                else {
-                    if (boardTab[x][y] == 0) {
-                        var enemy = new Enemy(x, y, i, x * blockSize, y * blockSize, 5, true, 1);
-                        enemy.myAnimation();
-                        enemy.controleMovement();
-                        enemyTab[i] = enemy;
-                    }
-                    else {
+    now = performance.now();
+    elapsed = now - then;
+    // if enough time has elapsed, draw the next frame
+    if (elapsed > fpsInterval) {
+        // Get ready for next frame by setting then=now, but...
+        // Also, adjust for fpsInterval not being multiple of 16.67
+        then = now - (elapsed % fpsInterval);
+        if (Date.now() - lastTime > 1000) {
+            lastTime = Date.now();
+            timer--;
+            timerCanvas.fillStyle = "#a1a1a1";
+            timerCanvas.fillRect(0, 0, blockSize * 16, blockSize * 2);
+            timerCanvas.font = "bold 28px verdana, sans-serif ";
+            timerCanvas.fillStyle = "#ffffff";
+            timerCanvas.fillText("Time ".concat(timer), blockSize * 0.5, blockSize * 1.5);
+            timerCanvas.fillText("Score ".concat(score), blockSize * 8, blockSize * 1.5);
+            timerCanvas.fillText("Left ".concat(square.lives), blockSize * 12, blockSize * 1.5);
+            if (timer == 1) {
+                enemiesOnStage = 6;
+                enemyTab = [];
+                for (var i = 0; i < enemiesOnStage; i++) {
+                    var x = getRandomInt(1, 30);
+                    var y = getRandomInt(1, 12);
+                    if (x == 1 && y == 1 || x == 1 && y == 2 || x == 2 && y == 1) {
                         i--;
                     }
+                    else {
+                        if (boardTab[x][y] == 0) {
+                            var enemy = new Enemy(x, y, i, x * blockSize, y * blockSize, 5, true, 1);
+                            enemy.myAnimation();
+                            enemy.controleMovement();
+                            enemyTab[i] = enemy;
+                        }
+                        else {
+                            i--;
+                        }
+                    }
+                }
+            }
+            if (timer <= 0) {
+                timer = 0;
+            }
+        }
+        if (square.x > blockSize * 8 && square.x < blockSize * 23) {
+            offset = square.x - blockSize * 8;
+        }
+        else if (square.x < blockSize * 8) {
+            offset = 0;
+        }
+        if (controller.up || controller.left || controller.right || controller.down) {
+            frameCount++;
+            if (frameCount % 5 == 0) {
+                square.step += 1;
+            }
+            if (square.step == 4) {
+                square.step = 1;
+            }
+        }
+        //wyrzuć squarevelocity poza elsa żeby było jak w oryginale
+        if (controller.up) {
+            if (square.direction == "down" && controller.down) {
+            }
+            else {
+                square.direction = "up";
+                square.yVelocity -= 2;
+            }
+        }
+        if (controller.left) {
+            if (square.direction == "right" && controller.right) {
+            }
+            else {
+                square.direction = "left";
+                square.xVelocity -= 2;
+            }
+        }
+        if (controller.right) {
+            if (square.direction == "left" && controller.left) {
+            }
+            else {
+                square.direction = "right";
+                square.xVelocity += 2;
+            }
+        }
+        if (controller.down) {
+            if (square.direction == "up" && controller.up) {
+            }
+            else {
+                square.direction = "down";
+                square.yVelocity += 2;
+            }
+        }
+        // square.yVelocity += 1.5;// gravity
+        var myBool1_1 = true;
+        var myBool2_1 = true;
+        colisions.forEach(function (element) {
+            if (square.x + square.width + square.xVelocity > element.x1 && square.x + square.xVelocity < element.x2
+                && square.y + square.height > element.y1 && square.y < element.y2) {
+                myBool1_1 = false;
+                if (controller.right) {
+                    if (square.direction == "left" && controller.left) {
+                    }
+                    else {
+                        if ((square.y / blockSize) - (Math.round(element.y1 / blockSize)) < -0.6 && (square.y / blockSize) - (Math.round(element.y1 / blockSize)) > -1) {
+                            square.direction = "right";
+                            square.yVelocity -= 1;
+                        }
+                        else if (((square.y / blockSize) - (Math.round(element.y1 / blockSize)) > 0.6) && ((square.y / blockSize) - (Math.round(element.y1 / blockSize)) < 1)) {
+                            square.direction = "right";
+                            square.yVelocity += 1;
+                        }
+                    }
+                }
+                if (controller.left) {
+                    if (square.direction == "right" && controller.right) {
+                    }
+                    else {
+                        if ((square.y / blockSize) - (Math.round(element.y1 / blockSize)) < -0.6 && (square.y / blockSize) - (Math.round(element.y1 / blockSize)) > -1) {
+                            square.direction = "left";
+                            square.yVelocity -= 1;
+                        }
+                        else if (((square.y / blockSize) - (Math.round(element.y1 / blockSize)) > 0.6) && ((square.y / blockSize) - (Math.round(element.y1 / blockSize)) < 1)) {
+                            square.direction = "left";
+                            square.yVelocity += 1;
+                        }
+                    }
+                }
+            }
+            if (square.y + square.height + square.yVelocity > element.y1 && square.y + square.yVelocity < element.y2
+                && square.x + square.width > element.x1 && square.x < element.x2) {
+                myBool2_1 = false;
+            }
+        });
+        if (square.died == false) {
+            if (myBool1_1) {
+                square.x += square.xVelocity;
+            }
+            if (myBool2_1) {
+                square.y += square.yVelocity;
+            }
+        }
+        square.xVelocity *= 0; // friction
+        square.yVelocity *= 0; // friction
+        // if square is falling below floor line
+        //
+        if (square.y > blockSize * 11) {
+            square.y = blockSize * 11;
+        }
+        else if (square.y < blockSize) {
+            square.y = blockSize;
+        }
+        // if square is going off the left of the screen
+        if (square.x < blockSize) {
+            square.x = blockSize;
+        }
+        else if (square.x > blockSize * 29.2) { // if square goes past right boundary
+            square.x = blockSize * 29.2;
+        }
+        function pickPowerup(element, index) {
+            if (square.x + square.width > element.x * blockSize && square.x < element.x * blockSize + blockSize
+                && square.y + square.height > element.y * blockSize && square.y < element.y * blockSize + blockSize) {
+                console.log(element.type);
+                if (element.type == "bomb") {
+                    square.bombs += 1;
+                    score += 1000;
+                    powerUpTab[index] = 0;
+                }
+                if (element.type == "range") {
+                    square.exposionSize += 1;
+                    score += 1000;
+                    powerUpTab[index] = 0;
+                }
+                if (element.type == "doors") {
+                    powerUpTab[index] = 0;
+                    nextStage();
+                    //if (enemiesOnStage == 0) {
+                    //}
                 }
             }
         }
-        if (timer <= 0) {
-            timer = 0;
-        }
-    }
-    if (square.x > blockSize * 8 && square.x < blockSize * 23) {
-        offset = square.x - blockSize * 8;
-    }
-    else if (square.x < blockSize * 8) {
-        offset = 0;
-    }
-    if (controller.up || controller.left || controller.right || controller.down) {
-        frameCount++;
-        if (frameCount % 5 == 0) {
-            square.step += 1;
-        }
-        if (square.step == 4) {
-            square.step = 1;
-        }
-    }
-    //wyrzuć squarevelocity poza elsa żeby było jak w oryginale
-    if (controller.up) {
-        if (square.direction == "down" && controller.down) {
+        context.fillStyle = "#388700";
+        context.fillRect(0, 0, blockSize * 31, blockSize * 13); // x, y, width, height
+        powerUpTab.forEach(function (power) {
+            if (power != 0) {
+                context.drawImage(power.image, power.x * blockSize - offset, power.y * blockSize, blockSize, blockSize);
+            }
+        });
+        boxTab.forEach(function (box) {
+            if (box != 0) {
+                context.drawImage(box[2], box[0] * blockSize - offset, box[1] * blockSize, blockSize, blockSize);
+            }
+        });
+        obXCoors.forEach(function (obXCoor) {
+            context.drawImage(wall, obXCoor[0] * blockSize - offset, obXCoor[1] * blockSize, blockSize, blockSize);
+        });
+        xplosionTab.forEach(function (xplosion, i) {
+            if (xplosion != 0) {
+                context.drawImage(xplosion[3], xplosion[0] * blockSize - offset, xplosion[1] * blockSize, blockSize, blockSize);
+            }
+        });
+        bombTab.forEach(function (bomb, i) {
+            if (bomb != 0) {
+                context.drawImage(bomb.image, bomb.x * blockSize - offset, bomb.y * blockSize, blockSize, blockSize);
+                if (bomb.isSolid == false) {
+                    if (square.x + square.width < bomb.x * blockSize || square.x - blockSize * 0.2 > bomb.x * blockSize + square.width || square.y + square.height < bomb.y * blockSize || square.y > bomb.y * blockSize + square.height - blockSize * 0.02) {
+                        var colision = new ColisionObj(bomb.x * blockSize, (bomb.x + 1) * blockSize, bomb.y * blockSize, (bomb.y + 1) * blockSize, "bomb");
+                        boardTab[bomb.x][bomb.y].isSolid = true;
+                        colisions.push(colision);
+                    }
+                }
+            }
+        });
+        enemyTab.forEach(function (enemy) {
+            if (enemy != 0) {
+                context.drawImage(enemy.image, (enemy.x - offset), enemy.y, enemy.width, enemy.height);
+            }
+        });
+        // Creates and fills the cube for each framecontext.drawImage
+        if (square.died == false) {
+            switch (square.direction) {
+                case ("down"): {
+                    switch (square.step) {
+                        case (1):
+                            context.drawImage(down1, square.x - offset, square.y, square.width, square.height);
+                            break;
+                        case (2):
+                            context.drawImage(down2, square.x - offset, square.y, square.width, square.height);
+                            break;
+                        case (3):
+                            context.drawImage(down3, square.x - offset, square.y, square.width, square.height);
+                            break;
+                    }
+                    break;
+                }
+                case ("up"): {
+                    switch (square.step) {
+                        case (1):
+                            context.drawImage(up1, square.x - offset, square.y, square.width, square.height);
+                            break;
+                        case (2):
+                            context.drawImage(up2, square.x - offset, square.y, square.width, square.height);
+                            break;
+                        case (3):
+                            context.drawImage(up3, square.x - offset, square.y, square.width, square.height);
+                            break;
+                    }
+                    break;
+                }
+                case ("left"): {
+                    switch (square.step) {
+                        case (1):
+                            context.drawImage(left1, square.x - offset, square.y, square.width, square.height);
+                            break;
+                        case (2):
+                            context.drawImage(left2, square.x - offset, square.y, square.width, square.height);
+                            break;
+                        case (3):
+                            context.drawImage(left3, square.x - offset, square.y, square.width, square.height);
+                            break;
+                    }
+                    break;
+                }
+                case ("right"): {
+                    switch (square.step) {
+                        case (1):
+                            context.drawImage(right1, square.x - offset, square.y, square.width, square.height);
+                            break;
+                        case (2):
+                            context.drawImage(right2, square.x - offset, square.y, square.width, square.height);
+                            break;
+                        case (3):
+                            context.drawImage(right3, square.x - offset, square.y, square.width, square.height);
+                            break;
+                    }
+                    break;
+                }
+            }
         }
         else {
-            square.direction = "up";
-            square.yVelocity -= 2;
+            context.drawImage(deathTab[square.stateOfDecay], square.x - offset, square.y, square.width, square.height);
         }
+        powerUpTab.forEach(pickPowerup);
     }
-    if (controller.left) {
-        if (square.direction == "right" && controller.right) {
-        }
-        else {
-            square.direction = "left";
-            square.xVelocity -= 2;
-        }
-    }
-    if (controller.right) {
-        if (square.direction == "left" && controller.left) {
-        }
-        else {
-            square.direction = "right";
-            square.xVelocity += 2;
-        }
-    }
-    if (controller.down) {
-        if (square.direction == "up" && controller.up) {
-        }
-        else {
-            square.direction = "down";
-            square.yVelocity += 2;
-        }
-    }
-    // square.yVelocity += 1.5;// gravity
-    var myBool1 = true;
-    var myBool2 = true;
-    colisions.forEach(function (element) {
-        if (square.x + square.width + square.xVelocity > element.x1 && square.x + square.xVelocity < element.x2
-            && square.y + square.height > element.y1 && square.y < element.y2) {
-            myBool1 = false;
-        }
-        if (square.y + square.height + square.yVelocity > element.y1 && square.y + square.yVelocity < element.y2
-            && square.x + square.width > element.x1 && square.x < element.x2) {
-            myBool2 = false;
-        }
-    });
-    if (square.died == false) {
-        if (myBool1) {
-            square.x += square.xVelocity;
-        }
-        if (myBool2) {
-            square.y += square.yVelocity;
-        }
-    }
-    square.xVelocity *= 0; // friction
-    square.yVelocity *= 0; // friction
-    // if square is falling below floor line
-    //
-    if (square.y > blockSize * 11) {
-        square.y = blockSize * 11;
-    }
-    else if (square.y < blockSize) {
-        square.y = blockSize;
-    }
-    // if square is going off the left of the screen
-    if (square.x < blockSize) {
-        square.x = blockSize;
-    }
-    else if (square.x > blockSize * 29.2) { // if square goes past right boundary
-        square.x = blockSize * 29.2;
-    }
-    function pickPowerup(element, index) {
-        if (square.x + square.width > element.x * blockSize && square.x < element.x * blockSize + blockSize
-            && square.y + square.height > element.y * blockSize && square.y < element.y * blockSize + blockSize) {
-            console.log(element.type);
-            if (element.type == "bomb") {
-                square.bombs += 1;
-                score += 1000;
-                powerUpTab[index] = 0;
-            }
-            if (element.type == "range") {
-                square.exposionSize += 1;
-                score += 1000;
-                powerUpTab[index] = 0;
-            }
-            if (element.type == "doors") {
-                powerUpTab[index] = 0;
-                nextStage();
-                //if (enemiesOnStage == 0) {
-                //}
-            }
-        }
-    }
-    context.fillStyle = "#388700";
-    context.fillRect(0, 0, blockSize * 31, blockSize * 13); // x, y, width, height
-    powerUpTab.forEach(function (power) {
-        if (power != 0) {
-            context.drawImage(power.image, power.x * blockSize - offset, power.y * blockSize, blockSize, blockSize);
-        }
-    });
-    boxTab.forEach(function (box) {
-        if (box != 0) {
-            context.drawImage(box[2], box[0] * blockSize - offset, box[1] * blockSize, blockSize, blockSize);
-        }
-    });
-    obXCoors.forEach(function (obXCoor) {
-        context.drawImage(wall, obXCoor[0] * blockSize - offset, obXCoor[1] * blockSize, blockSize, blockSize);
-    });
-    xplosionTab.forEach(function (xplosion, i) {
-        if (xplosion != 0) {
-            context.drawImage(xplosion[3], xplosion[0] * blockSize - offset, xplosion[1] * blockSize, blockSize, blockSize);
-        }
-    });
-    bombTab.forEach(function (bomb, i) {
-        if (bomb != 0) {
-            context.drawImage(bomb.image, bomb.x * blockSize - offset, bomb.y * blockSize, blockSize, blockSize);
-            if (bomb.isSolid == false) {
-                if (square.x + square.width < bomb.x * blockSize || square.x - blockSize * 0.2 > bomb.x * blockSize + square.width || square.y + square.height < bomb.y * blockSize || square.y > bomb.y * blockSize + square.height - blockSize * 0.02) {
-                    var colision = new ColisionObj(bomb.x * blockSize, (bomb.x + 1) * blockSize, bomb.y * blockSize, (bomb.y + 1) * blockSize, "bomb");
-                    boardTab[bomb.x][bomb.y].isSolid = true;
-                    colisions.push(colision);
-                }
-            }
-        }
-    });
-    enemyTab.forEach(function (enemy) {
-        if (enemy != 0) {
-            context.drawImage(enemy.image, (enemy.x - offset), enemy.y, enemy.width, enemy.height);
-        }
-    });
-    // Creates and fills the cube for each framecontext.drawImage
-    if (square.died == false) {
-        switch (square.direction) {
-            case ("down"): {
-                switch (square.step) {
-                    case (1):
-                        context.drawImage(down1, square.x - offset, square.y, square.width, square.height);
-                        break;
-                    case (2):
-                        context.drawImage(down2, square.x - offset, square.y, square.width, square.height);
-                        break;
-                    case (3):
-                        context.drawImage(down3, square.x - offset, square.y, square.width, square.height);
-                        break;
-                }
-                break;
-            }
-            case ("up"): {
-                switch (square.step) {
-                    case (1):
-                        context.drawImage(up1, square.x - offset, square.y, square.width, square.height);
-                        break;
-                    case (2):
-                        context.drawImage(up2, square.x - offset, square.y, square.width, square.height);
-                        break;
-                    case (3):
-                        context.drawImage(up3, square.x - offset, square.y, square.width, square.height);
-                        break;
-                }
-                break;
-            }
-            case ("left"): {
-                switch (square.step) {
-                    case (1):
-                        context.drawImage(left1, square.x - offset, square.y, square.width, square.height);
-                        break;
-                    case (2):
-                        context.drawImage(left2, square.x - offset, square.y, square.width, square.height);
-                        break;
-                    case (3):
-                        context.drawImage(left3, square.x - offset, square.y, square.width, square.height);
-                        break;
-                }
-                break;
-            }
-            case ("right"): {
-                switch (square.step) {
-                    case (1):
-                        context.drawImage(right1, square.x - offset, square.y, square.width, square.height);
-                        break;
-                    case (2):
-                        context.drawImage(right2, square.x - offset, square.y, square.width, square.height);
-                        break;
-                    case (3):
-                        context.drawImage(right3, square.x - offset, square.y, square.width, square.height);
-                        break;
-                }
-                break;
-            }
-        }
-    }
-    else {
-        context.drawImage(deathTab[square.stateOfDecay], square.x - offset, square.y, square.width, square.height);
-    }
-    powerUpTab.forEach(pickPowerup);
     if (stopGame == false) {
         myFrame = window.requestAnimationFrame(loop);
     }
+    // calc elapsed time since last loop
 };
 window.addEventListener("keydown", controller.keyListener);
 window.addEventListener("keyup", controller.keyListener);
