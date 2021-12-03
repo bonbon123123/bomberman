@@ -529,9 +529,9 @@ const startLoop = function () {
     startTime = then;
     myFrame = window.requestAnimationFrame(loop);
 }
-let fpsInterval
-let then
-let startTime
+let fpsInterval: number
+let then: number
+let startTime: number
 class PowerUpObj {
     x: number;
     y: number;
@@ -1298,8 +1298,8 @@ const controller = {
 
 
 };
-let now
-let elapsed
+let now: number
+let elapsed: number
 
 const loop = function () {
     now = performance.now();
@@ -1410,7 +1410,7 @@ const loop = function () {
                 square.yVelocity += 2;
             }
         }
-        // square.yVelocity += 1.5;// gravity
+        //square.yVelocity += 1.5;// gravity
         let myBool1: boolean = true
         let myBool2: boolean = true
 
@@ -1418,19 +1418,30 @@ const loop = function () {
             if (square.x + square.width + square.xVelocity > element.x1 && square.x + square.xVelocity < element.x2
                 && square.y + square.height > element.y1 && square.y < element.y2) {
                 myBool1 = false
+                let overIt: Boolean = true
+                let underIt: Boolean = true
+                colisions.forEach(item => {
+                    if (element.x1 == item.x1 && element.y1 == item.y1 - 50) {
 
+                        underIt = false
+                    }
+                    if (element.x1 == item.x1 && element.y1 == item.y1 + 50) {
+
+                        overIt = false
+                    }
+                })
                 if (controller.right) {
 
                     if (square.direction == "left" && controller.left) {
 
                     } else {
-                        if ((square.y / blockSize) - (Math.round(element.y1 / blockSize)) < -0.6 && (square.y / blockSize) - (Math.round(element.y1 / blockSize)) > -1) {
+                        if ((square.y / blockSize) - (Math.round(element.y1 / blockSize)) < -0.5 && (square.y / blockSize) - (Math.round(element.y1 / blockSize)) > -1 && overIt) {
                             square.direction = "right"
-                            square.yVelocity -= 1;
+                            square.yVelocity -= 2;
                         }
-                        else if (((square.y / blockSize) - (Math.round(element.y1 / blockSize)) > 0.6) && ((square.y / blockSize) - (Math.round(element.y1 / blockSize)) < 1)) {
+                        else if (((square.y / blockSize) - (Math.round(element.y1 / blockSize)) > 0.5) && ((square.y / blockSize) - (Math.round(element.y1 / blockSize)) < 1 && underIt)) {
                             square.direction = "right"
-                            square.yVelocity += 1;
+                            square.yVelocity += 2;
                         }
 
                     }
@@ -1441,13 +1452,13 @@ const loop = function () {
                     if (square.direction == "right" && controller.right) {
 
                     } else {
-                        if ((square.y / blockSize) - (Math.round(element.y1 / blockSize)) < -0.6 && (square.y / blockSize) - (Math.round(element.y1 / blockSize)) > -1) {
+                        if ((square.y / blockSize) - (Math.round(element.y1 / blockSize)) < -0.5 && (square.y / blockSize) - (Math.round(element.y1 / blockSize)) > -1 && overIt) {
                             square.direction = "left"
-                            square.yVelocity -= 1;
+                            square.yVelocity -= 2;
                         }
-                        else if (((square.y / blockSize) - (Math.round(element.y1 / blockSize)) > 0.6) && ((square.y / blockSize) - (Math.round(element.y1 / blockSize)) < 1)) {
+                        else if (((square.y / blockSize) - (Math.round(element.y1 / blockSize)) > 0.5) && ((square.y / blockSize) - (Math.round(element.y1 / blockSize)) < 1) && underIt) {
                             square.direction = "left"
-                            square.yVelocity += 1;
+                            square.yVelocity += 2;
                         }
 
                     }
@@ -1458,7 +1469,46 @@ const loop = function () {
             if (square.y + square.height + square.yVelocity > element.y1 && square.y + square.yVelocity < element.y2
                 && square.x + square.width > element.x1 && square.x < element.x2) {
                 myBool2 = false
+                let befoteIt: Boolean = true
+                let afterIt: Boolean = true
+                colisions.forEach(item => {
+                    if (element.x1 == item.x1 - 50 && element.y1 == item.y1) {
+                        afterIt = false
+                    }
+                    if (element.x1 == item.x1 + 50 && element.y1 == item.y1) {
+                        befoteIt = false
+                    }
+                })
+                if (controller.up) {
 
+                    if (square.direction == "down" && controller.left) {
+
+                    } else {
+                        if ((square.x / blockSize) - (Math.round(element.x1 / blockSize)) < -0.4 && (square.x / blockSize) - (Math.round(element.x1 / blockSize)) > -1 && befoteIt) {
+                            square.direction = "up"
+                            square.xVelocity -= 1;
+                        }
+                        else if (((square.x / blockSize) - (Math.round(element.x1 / blockSize)) > 0.6) && ((square.x / blockSize) - (Math.round(element.x1 / blockSize)) < 1) && afterIt) {
+                            square.direction = "up"
+                            square.xVelocity += 1;
+                        }
+                    }
+                }
+                if (controller.down) {
+
+                    if (square.direction == "up" && controller.right) {
+
+                    } else {
+                        if ((square.x / blockSize) - (Math.round(element.x1 / blockSize)) < -0.4 && (square.x / blockSize) - (Math.round(element.x1 / blockSize)) > -1 && befoteIt) {
+                            square.direction = "down"
+                            square.xVelocity -= 1;
+                        }
+                        else if (((square.x / blockSize) - (Math.round(element.x1 / blockSize)) > 0.6) && ((square.x / blockSize) - (Math.round(element.x1 / blockSize)) < 1) && afterIt) {
+                            square.direction = "down"
+                            square.xVelocity += 1;
+                        }
+                    }
+                }
             }
         })
 
@@ -1472,6 +1522,7 @@ const loop = function () {
                 square.y += square.yVelocity;
 
             }
+
         }
 
         square.xVelocity *= 0;// friction
@@ -1521,12 +1572,10 @@ const loop = function () {
                     powerUpTab[index] = 0
                 }
                 if (element.type == "doors") {
-                    powerUpTab[index] = 0
-                    nextStage()
-
-                    //if (enemiesOnStage == 0) {
-
-                    //}
+                    if (enemiesOnStage == 0) {
+                        powerUpTab[index] = 0
+                        nextStage()
+                    }
                 }
 
             }

@@ -1233,24 +1233,34 @@ var loop = function () {
                 square.yVelocity += 2;
             }
         }
-        // square.yVelocity += 1.5;// gravity
+        //square.yVelocity += 1.5;// gravity
         var myBool1_1 = true;
         var myBool2_1 = true;
         colisions.forEach(function (element) {
             if (square.x + square.width + square.xVelocity > element.x1 && square.x + square.xVelocity < element.x2
                 && square.y + square.height > element.y1 && square.y < element.y2) {
                 myBool1_1 = false;
+                var overIt_1 = true;
+                var underIt_1 = true;
+                colisions.forEach(function (item) {
+                    if (element.x1 == item.x1 && element.y1 == item.y1 - 50) {
+                        underIt_1 = false;
+                    }
+                    if (element.x1 == item.x1 && element.y1 == item.y1 + 50) {
+                        overIt_1 = false;
+                    }
+                });
                 if (controller.right) {
                     if (square.direction == "left" && controller.left) {
                     }
                     else {
-                        if ((square.y / blockSize) - (Math.round(element.y1 / blockSize)) < -0.6 && (square.y / blockSize) - (Math.round(element.y1 / blockSize)) > -1) {
+                        if ((square.y / blockSize) - (Math.round(element.y1 / blockSize)) < -0.5 && (square.y / blockSize) - (Math.round(element.y1 / blockSize)) > -1 && overIt_1) {
                             square.direction = "right";
-                            square.yVelocity -= 1;
+                            square.yVelocity -= 2;
                         }
-                        else if (((square.y / blockSize) - (Math.round(element.y1 / blockSize)) > 0.6) && ((square.y / blockSize) - (Math.round(element.y1 / blockSize)) < 1)) {
+                        else if (((square.y / blockSize) - (Math.round(element.y1 / blockSize)) > 0.5) && ((square.y / blockSize) - (Math.round(element.y1 / blockSize)) < 1 && underIt_1)) {
                             square.direction = "right";
-                            square.yVelocity += 1;
+                            square.yVelocity += 2;
                         }
                     }
                 }
@@ -1258,13 +1268,13 @@ var loop = function () {
                     if (square.direction == "right" && controller.right) {
                     }
                     else {
-                        if ((square.y / blockSize) - (Math.round(element.y1 / blockSize)) < -0.6 && (square.y / blockSize) - (Math.round(element.y1 / blockSize)) > -1) {
+                        if ((square.y / blockSize) - (Math.round(element.y1 / blockSize)) < -0.5 && (square.y / blockSize) - (Math.round(element.y1 / blockSize)) > -1 && overIt_1) {
                             square.direction = "left";
-                            square.yVelocity -= 1;
+                            square.yVelocity -= 2;
                         }
-                        else if (((square.y / blockSize) - (Math.round(element.y1 / blockSize)) > 0.6) && ((square.y / blockSize) - (Math.round(element.y1 / blockSize)) < 1)) {
+                        else if (((square.y / blockSize) - (Math.round(element.y1 / blockSize)) > 0.5) && ((square.y / blockSize) - (Math.round(element.y1 / blockSize)) < 1) && underIt_1) {
                             square.direction = "left";
-                            square.yVelocity += 1;
+                            square.yVelocity += 2;
                         }
                     }
                 }
@@ -1272,6 +1282,44 @@ var loop = function () {
             if (square.y + square.height + square.yVelocity > element.y1 && square.y + square.yVelocity < element.y2
                 && square.x + square.width > element.x1 && square.x < element.x2) {
                 myBool2_1 = false;
+                var befoteIt_1 = true;
+                var afterIt_1 = true;
+                colisions.forEach(function (item) {
+                    if (element.x1 == item.x1 - 50 && element.y1 == item.y1) {
+                        afterIt_1 = false;
+                    }
+                    if (element.x1 == item.x1 + 50 && element.y1 == item.y1) {
+                        befoteIt_1 = false;
+                    }
+                });
+                if (controller.up) {
+                    if (square.direction == "down" && controller.left) {
+                    }
+                    else {
+                        if ((square.x / blockSize) - (Math.round(element.x1 / blockSize)) < -0.4 && (square.x / blockSize) - (Math.round(element.x1 / blockSize)) > -1 && befoteIt_1) {
+                            square.direction = "up";
+                            square.xVelocity -= 1;
+                        }
+                        else if (((square.x / blockSize) - (Math.round(element.x1 / blockSize)) > 0.6) && ((square.x / blockSize) - (Math.round(element.x1 / blockSize)) < 1) && afterIt_1) {
+                            square.direction = "up";
+                            square.xVelocity += 1;
+                        }
+                    }
+                }
+                if (controller.down) {
+                    if (square.direction == "up" && controller.right) {
+                    }
+                    else {
+                        if ((square.x / blockSize) - (Math.round(element.x1 / blockSize)) < -0.4 && (square.x / blockSize) - (Math.round(element.x1 / blockSize)) > -1 && befoteIt_1) {
+                            square.direction = "down";
+                            square.xVelocity -= 1;
+                        }
+                        else if (((square.x / blockSize) - (Math.round(element.x1 / blockSize)) > 0.6) && ((square.x / blockSize) - (Math.round(element.x1 / blockSize)) < 1) && afterIt_1) {
+                            square.direction = "down";
+                            square.xVelocity += 1;
+                        }
+                    }
+                }
             }
         });
         if (square.died == false) {
@@ -1314,10 +1362,10 @@ var loop = function () {
                     powerUpTab[index] = 0;
                 }
                 if (element.type == "doors") {
-                    powerUpTab[index] = 0;
-                    nextStage();
-                    //if (enemiesOnStage == 0) {
-                    //}
+                    if (enemiesOnStage == 0) {
+                        powerUpTab[index] = 0;
+                        nextStage();
+                    }
                 }
             }
         }
