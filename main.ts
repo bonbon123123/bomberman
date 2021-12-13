@@ -1,6 +1,15 @@
 const context = (document.getElementById("board") as HTMLCanvasElement).getContext("2d");
 const timerCanvas = (document.getElementById("timer") as HTMLCanvasElement).getContext("2d");
 
+const DeathAudio = new Audio('./sound/Death.mp3')
+const StartAudio = new Audio('./sound/Start.mp3')
+const OverAudio = new Audio('./sound/Over.mp3')
+const CompleteAudio = new Audio('./sound/Complete.mp3')
+const HorizontalAudio = new Audio('./sound/Horizontal1.wav')
+const VerticalAudio = new Audio('./sound/Vertical.wav')
+const InGame = new Audio('./sound/InGame.mp3')
+
+
 
 const brick1: HTMLImageElement = new Image();
 brick1.src = './sprites/brick1.png';
@@ -239,6 +248,7 @@ bonusBombIcon.src = "./sprites/bonusBombIcon.png"
 const doorIcon: HTMLImageElement = new Image()
 doorIcon.src = "./sprites/doorIcon.png"
 
+let playerMadeMove: boolean = false
 const blockSize: number = 50
 let bombindex: number = 0
 let xplotionIndex: number = 0
@@ -269,11 +279,11 @@ let frameCount: number = 1;
 // Set the number of obstacles to match the current "level"
 let lastTime: number = 0
 // Create a collection to hold the generated x coordinates
-let obXCoors: Object[] = [];
+let obXCoors: Array<Array<string | number | object>> = [];
 let timer: number = 200
-let boxTab: Object[] = []
+let boxTab: Array<Array<string | number | HTMLImageElement | CanvasImageSource>> = []
 let powerUpTab: (PowerUpObj | number)[] = []
-let boardTab: Object[] = [];
+let boardTab: Array<Array<string | number | Bomb>> = [];
 
 let score: number = 0
 
@@ -281,11 +291,23 @@ let myFrame: number
 
 let enemyTab: (Enemy | number)[] = []
 
-const xplosionTab: (number | [] | string[])[] = [];
+const xplosionTab: Array<Array<string | number | HTMLImageElement | CanvasImageSource>> = [];
 
 let colisions: ColisionObj[] = [];
 
 let bombTab: (Bomb | number)[] = []
+
+setInterval(function () {
+    if (controller.left || controller.right) {
+
+        HorizontalAudio.play()
+    }
+    if (controller.up || controller.down) {
+        VerticalAudio.play()
+    }
+
+}, 10);
+
 
 class Bomber {
     height: number
@@ -333,14 +355,14 @@ class Bomber {
 }
 let stopGame: boolean = false
 const square = new Bomber(blockSize, blockSize * 0.75, 15, 0, 15, 0, 1, "left", 1, 1, 2, false, 0)
-function getRandomInt(min, max) {
+function getRandomInt(min: number, max: number) {
     min = Math.ceil(min);
     max = Math.floor(max);
     return Math.floor(Math.random() * (max - min)) + min;
 }
 
 
-const spawnBaboons = function (x, y) {
+const spawnBaboons = function (x: number, y: number) {
     setTimeout(function () {
         console.log("baboons")
         for (let i: number = 0; i < 6; i++) {
@@ -355,7 +377,6 @@ const spawnBaboons = function (x, y) {
         }
     }, 500);
 
-
 }
 const endGame = function () {
 
@@ -367,6 +388,7 @@ const endGame = function () {
     context.textAlign = "center";
     square.lives -= 1
     if (square.lives == -1) {
+        OverAudio.play()
         context.fillText(`Game Over`, context.canvas.width / 2, context.canvas.height / 2);
     } else {
         context.fillText(`Stage ${stage}`, context.canvas.width / 2, context.canvas.height / 2);
@@ -397,7 +419,8 @@ const nextStage = function () {
 }
 
 
-const animateDeath = function (i) {
+const animateDeath = function (i: number) {
+    DeathAudio.play()
     if (i == 8) {
         endGame()
     } else {
@@ -408,6 +431,7 @@ const animateDeath = function (i) {
 
 
 const startLoop = function () {
+
     stopGame = false
     square.died = false
     square.x = 15
@@ -528,6 +552,7 @@ const startLoop = function () {
     then = performance.now();
     startTime = then;
     myFrame = window.requestAnimationFrame(loop);
+
 }
 let fpsInterval: number
 let then: number
@@ -1050,7 +1075,7 @@ class Bomb {
         setTimeout(function () { square.bombs++ }, 200);
         this.destroyAround()
     }
-    demolishWall(x, y) {
+    demolishWall(x: number, y: number) {
         let that: Bomb = this
 
         for (let i: number = 0; i < boxTab.length; i++) {
@@ -1076,7 +1101,7 @@ class Bomb {
 
                 }
                 else if (boxTab[i][2] == brick6) {
-                    boxTab[i] = 0
+                    boxTab[i] = [0]
 
                     for (let i: number = 0; i < colisions.length; i++) {
                         if (colisions[i].type == "box" && colisions[i].x1 == (x) * blockSize && colisions[i].y1 == y * blockSize) {
@@ -1107,7 +1132,7 @@ class Bomb {
         let that: Bomb = this
         setTimeout(function () { that.progressExposion() }, 10);
     }
-    animatexplode(x, y, img, bombId) {
+    animatexplode(x: number, y: number, img: HTMLImageElement[], bombId: number) {
         let that: Bomb = this
         let myId: string = `${x}${y}`
         if (x == Math.round(square.x / blockSize) && y == Math.round(square.y / blockSize)) {
@@ -1135,7 +1160,7 @@ class Bomb {
             if (xplosionTab[i][2] == myId && xplosionTab[i][4] == bombId) {
                 if (this.explotionCycle == 6) {
 
-                    xplosionTab[i] = 0
+                    xplosionTab[i] = [0]
 
                 } else {
 
@@ -1147,7 +1172,7 @@ class Bomb {
         }
 
     }
-    startAnimatingXplotion(x, y, img, bombId) {
+    startAnimatingXplotion(x: number, y: number, img: Array<HTMLImageElement>, bombId: number) {
         let myId: string = `${x}${y}`
         let that: Bomb = this
         xplosionTab.push([x, y, myId, img[this.explotionCycle], bombId])
@@ -1257,6 +1282,7 @@ class Bomb {
     }
 }
 
+
 const controller = {
 
     left: false,
@@ -1264,32 +1290,38 @@ const controller = {
     up: false,
     down: false,
 
-    keyListener: function (event) {
-
+    keyListener: function (event: KeyboardEvent) {
+        if (playerMadeMove == false) {
+            InGame.play()
+            InGame.addEventListener('ended', function () {
+                this.currentTime = 0;
+                this.play();
+            }, false);
+        }
         var key_state = (event.type == "keydown") ? true : false;
 
         switch (event.keyCode) {
 
             case 37:// left key
                 controller.left = key_state;
-
+                //HorizontalAudio.play()
 
                 break;
             case 38:// up key
                 controller.up = key_state;
-
+                // VerticalAudio.play()
 
 
                 break;
             case 39:// right key
                 controller.right = key_state;
-
+                // HorizontalAudio.play()
 
 
                 break;
             case 40:// right key
                 controller.down = key_state;
-
+                // VerticalAudio.play()
 
                 break;
         }
@@ -1314,6 +1346,7 @@ const loop = function () {
         then = now - (elapsed % fpsInterval);
 
         if (Date.now() - lastTime > 1000) {
+
             lastTime = Date.now()
             timer--
             timerCanvas.fillStyle = "#a1a1a1";
@@ -1557,7 +1590,7 @@ const loop = function () {
 
 
 
-        function pickPowerup(element, index) {
+        function pickPowerup(element: PowerUpObj, index: number) {
             if (square.x + square.width > element.x * blockSize && square.x < element.x * blockSize + blockSize
                 && square.y + square.height > element.y * blockSize && square.y < element.y * blockSize + blockSize) {
                 console.log(element.type)
@@ -1593,21 +1626,21 @@ const loop = function () {
 
 
         boxTab.forEach((box) => {
-            if (box != 0) {
-                context.drawImage(box[2], box[0] * blockSize - offset, box[1] * blockSize, blockSize, blockSize);
+            if (box.length != 1) {
+                context.drawImage((box[2] as CanvasImageSource), (box[0] as number) * blockSize - offset, (box[1] as number) * blockSize, blockSize, blockSize);
             }
         })
 
 
         obXCoors.forEach((obXCoor) => {
-            context.drawImage(wall, obXCoor[0] * blockSize - offset, obXCoor[1] * blockSize, blockSize, blockSize);
+            context.drawImage(wall, (obXCoor[0] as number) * blockSize - offset, (obXCoor[1] as number) * blockSize, blockSize, blockSize);
 
 
         })
 
         xplosionTab.forEach((xplosion, i) => {
-            if (xplosion != 0) {
-                context.drawImage(xplosion[3], xplosion[0] * blockSize - offset, xplosion[1] * blockSize, blockSize, blockSize);
+            if (xplosion.length != 1) {
+                context.drawImage((xplosion[3] as CanvasImageSource), (xplosion[0] as number) * blockSize - offset, (xplosion[1] as number) * blockSize, blockSize, blockSize);
 
             }
 
@@ -1622,8 +1655,9 @@ const loop = function () {
                     if (square.x + square.width < (bomb as Bomb).x * blockSize || square.x - blockSize * 0.2 > (bomb as Bomb).x * blockSize + square.width || square.y + square.height < (bomb as Bomb).y * blockSize || square.y > (bomb as Bomb).y * blockSize + square.height - blockSize * 0.02) {
 
 
-                        let colision: ColisionObj = new ColisionObj((bomb as Bomb).x * blockSize, ((bomb as Bomb).x + 1) * blockSize, (bomb as Bomb).y * blockSize, ((bomb as Bomb).y + 1) * blockSize, "bomb")
-                        boardTab[(bomb as Bomb).x][(bomb as Bomb).y].isSolid = true
+                        let colision: ColisionObj = new ColisionObj((bomb as Bomb).x * blockSize, ((bomb as Bomb).x + 1) * blockSize, (bomb as Bomb).y * blockSize, ((bomb as Bomb).y + 1) * blockSize, "bomb");
+
+                        (boardTab[(bomb as Bomb).x][(bomb as Bomb).y] as Bomb).isSolid = true
                         colisions.push(colision)
                     }
                 }
@@ -1722,9 +1756,9 @@ const loop = function () {
 
 window.addEventListener("keydown", controller.keyListener)
 window.addEventListener("keyup", controller.keyListener);
-function doWhichKey(e) {
+function doWhichKey(e: KeyboardEvent) {
     bombcd = false
-    e = e || window.event;
+    // e = e || window.event;
     let charCode: number = e.keyCode || e.which;
     if (charCode == 32 && boardTab[Math.round(square.x / blockSize)][Math.round(square.y / blockSize)] == 0 && square.bombs > 0) {
         bombindex++
@@ -1738,6 +1772,7 @@ window.addEventListener('keypress', function (e) {
     if (bombcd) {
         doWhichKey(e);
     }
+
 
 }, false);
 startLoop()

@@ -1,5 +1,12 @@
 var context = document.getElementById("board").getContext("2d");
 var timerCanvas = document.getElementById("timer").getContext("2d");
+var DeathAudio = new Audio('./sound/Death.mp3');
+var StartAudio = new Audio('./sound/Start.mp3');
+var OverAudio = new Audio('./sound/Over.mp3');
+var CompleteAudio = new Audio('./sound/Complete.mp3');
+var HorizontalAudio = new Audio('./sound/Horizontal1.wav');
+var VerticalAudio = new Audio('./sound/Vertical.wav');
+var InGame = new Audio('./sound/InGame.mp3');
 var brick1 = new Image();
 brick1.src = './sprites/brick1.png';
 var brick2 = new Image();
@@ -200,6 +207,7 @@ var bonusBombIcon = new Image();
 bonusBombIcon.src = "./sprites/bonusBombIcon.png";
 var doorIcon = new Image();
 doorIcon.src = "./sprites/doorIcon.png";
+var playerMadeMove = false;
 var blockSize = 50;
 var bombindex = 0;
 var xplotionIndex = 0;
@@ -239,6 +247,14 @@ var enemyTab = [];
 var xplosionTab = [];
 var colisions = [];
 var bombTab = [];
+setInterval(function () {
+    if (controller.left || controller.right) {
+        HorizontalAudio.play();
+    }
+    if (controller.up || controller.down) {
+        VerticalAudio.play();
+    }
+}, 10);
 var Bomber = /** @class */ (function () {
     function Bomber(height, width, x, xVelocity, y, yVelocity, step, direction, bombs, exposionSize, lives, died, stateOfDecay) {
         this.height = height;
@@ -285,6 +301,7 @@ var endGame = function () {
     context.textAlign = "center";
     square.lives -= 1;
     if (square.lives == -1) {
+        OverAudio.play();
         context.fillText("Game Over", context.canvas.width / 2, context.canvas.height / 2);
     }
     else {
@@ -313,6 +330,7 @@ var nextStage = function () {
     setTimeout(function () { startLoop(); }, 3000);
 };
 var animateDeath = function (i) {
+    DeathAudio.play();
     if (i == 8) {
         endGame();
     }
@@ -948,7 +966,7 @@ var Bomb = /** @class */ (function () {
                     setTimeout(function () { that.demolishWall(x, y); }, 100);
                 }
                 else if (boxTab[i][2] == brick6) {
-                    boxTab[i] = 0;
+                    boxTab[i] = [0];
                     for (var i_1 = 0; i_1 < colisions.length; i_1++) {
                         if (colisions[i_1].type == "box" && colisions[i_1].x1 == (x) * blockSize && colisions[i_1].y1 == y * blockSize) {
                             colisions.splice(i_1, 1);
@@ -998,7 +1016,7 @@ var Bomb = /** @class */ (function () {
         for (var i = 0; i < xplosionTab.length; i++) {
             if (xplosionTab[i][2] == myId && xplosionTab[i][4] == bombId) {
                 if (this.explotionCycle == 6) {
-                    xplosionTab[i] = 0;
+                    xplosionTab[i] = [0];
                 }
                 else {
                     xplosionTab[i][3] = img[this.explotionCycle];
@@ -1122,19 +1140,30 @@ var controller = {
     up: false,
     down: false,
     keyListener: function (event) {
+        if (playerMadeMove == false) {
+            InGame.play();
+            InGame.addEventListener('ended', function () {
+                this.currentTime = 0;
+                this.play();
+            }, false);
+        }
         var key_state = (event.type == "keydown") ? true : false;
         switch (event.keyCode) {
             case 37: // left key
                 controller.left = key_state;
+                //HorizontalAudio.play()
                 break;
             case 38: // up key
                 controller.up = key_state;
+                // VerticalAudio.play()
                 break;
             case 39: // right key
                 controller.right = key_state;
+                // HorizontalAudio.play()
                 break;
             case 40: // right key
                 controller.down = key_state;
+                // VerticalAudio.play()
                 break;
         }
     }
@@ -1377,7 +1406,7 @@ var loop = function () {
             }
         });
         boxTab.forEach(function (box) {
-            if (box != 0) {
+            if (box.length != 1) {
                 context.drawImage(box[2], box[0] * blockSize - offset, box[1] * blockSize, blockSize, blockSize);
             }
         });
@@ -1385,7 +1414,7 @@ var loop = function () {
             context.drawImage(wall, obXCoor[0] * blockSize - offset, obXCoor[1] * blockSize, blockSize, blockSize);
         });
         xplosionTab.forEach(function (xplosion, i) {
-            if (xplosion != 0) {
+            if (xplosion.length != 1) {
                 context.drawImage(xplosion[3], xplosion[0] * blockSize - offset, xplosion[1] * blockSize, blockSize, blockSize);
             }
         });
@@ -1481,7 +1510,7 @@ window.addEventListener("keydown", controller.keyListener);
 window.addEventListener("keyup", controller.keyListener);
 function doWhichKey(e) {
     bombcd = false;
-    e = e || window.event;
+    // e = e || window.event;
     var charCode = e.keyCode || e.which;
     if (charCode == 32 && boardTab[Math.round(square.x / blockSize)][Math.round(square.y / blockSize)] == 0 && square.bombs > 0) {
         bombindex++;
