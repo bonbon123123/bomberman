@@ -1,3 +1,3 @@
 # bomberman
 NES Bomberman with Canvas
-<image src="/images/bomberman_1.png">
+<image src="/main/images/bomberman_1.PNG">
