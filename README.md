@@ -17,4 +17,4 @@ The screen follows you.
   
 <image src="/images/bomberman_4.PNG">
   
-Goal of the game is to destroy all enemies and proceed thru the door hinnde under one of the blocks.
+The game's goal is to destroy all enemies and proceed thru the door hidden under one of the blocks.
