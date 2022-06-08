@@ -13,7 +13,7 @@ There are powerups under some blocks.
   
 <image src="/images/bomberman_3.PNG">
   
-The screen follows you on you.
+The screen follows you.
   
 <image src="/images/bomberman_4.PNG">
   
