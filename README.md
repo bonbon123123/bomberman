@@ -1,5 +1,5 @@
 # bomberman
-NES Bomberman with Canvas, Mostly 1 to 1 recreation of first adn second level.
+NES Bomberman with Canvas, Mostly 1 to 1 recreation of first and second level.
 
 You start in the corner.
 
